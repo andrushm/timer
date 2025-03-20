@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Таймер</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <div id="app">
+        <div class="container mt-5">
+            <h1>Таймер</h1>
+
+            <div class="mb-3">
+                <label for="cycles" class="form-label">Кількість циклів:</label>
+                <input type="number" id="cycles" class="form-control" v-model="cycles" />
+            </div>
+
+            <div class="mb-3">
+                <label for="workTime" class="form-label">Час роботи (хв):</label>
+                <input type="number" id="workTime" class="form-control" v-model="workTime" />
+            </div>
+
+            <div class="mb-3">
+                <label for="restTime" class="form-label">Час відпочинку (хв):</label>
+                <input type="number" id="restTime" class="form-control" v-model="restTime" />
+            </div>
+
+            <button class="btn btn-primary" @click="startTimer" :disabled="isRunning">
+                {{ isRunning ? 'Таймер працює...' : 'Старт' }}
+            </button>
+
+            <div v-if="isRunning" class="mt-4">
+                <h2>Цикл {{ currentCycle }}/{{ cycles }}</h2>
+                <p>
+                    {{ isWorkTime ? 'Робота' : 'Відпочинок' }}: {{ formatTime(currentTime) }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    cycles: this.getCookie('cycles') || 3,
+                    workTime: this.getCookie('workTime') || 5,
+                    restTime: this.getCookie('restTime') || 3,
+                    currentCycle: 1,
+                    currentTime: 0,
+                    isRunning: false,
+                    isWorkTime: true,
+                    timer: null,
+                };
+            },
+            watch: {
+                cycles(newValue) {
+                    this.setCookie('cycles', newValue);
+                },
+                workTime(newValue) {
+                    this.setCookie('workTime', newValue);
+                },
+                restTime(newValue) {
+                    this.setCookie('restTime', newValue);
+                },
+            },
+            methods: {
+                startTimer() {
+                    this.currentCycle = 1;
+                    this.isWorkTime = true;
+                    this.currentTime = this.workTime * 60;
+                    this.isRunning = true;
+                    this.timer = setInterval(this.updateTimer, 1000);
+                },
+                updateTimer() {
+                    this.currentTime--;
+                    if (this.currentTime <= 0) {
+                        this.playSound();
+                        if (this.isWorkTime) {
+                            this.isWorkTime = false;
+                            this.currentTime = this.restTime * 60;
+                        } else {
+                            this.isWorkTime = true;
+                            this.currentCycle++;
+                            if (this.currentCycle > this.cycles) {
+                                this.stopTimer();
+                                return;
+                            }
+                            this.currentTime = this.workTime * 60;
+                        }
+                    }
+                },
+                stopTimer() {
+                    clearInterval(this.timer);
+                    this.isRunning = false;
+                },
+                playSound() {
+                    const audio = new Audio('https://bigsoundbank.com/UPLOAD/mp3/1417.mp3');
+                    audio.play();
+                },
+                formatTime(seconds) {
+                    const minutes = Math.floor(seconds / 60);
+                    const remainingSeconds = seconds % 60;
+                    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+                },
+                setCookie(name, value) {
+                    document.cookie = `${name}=${value}; max-age=${365 * 24 * 60 * 60}`; // 1 рік
+                },
+                getCookie(name) {
+                    const cookie = document.cookie.split('; ').find((row) => row.startsWith(`${name}=`));
+                    return cookie ? cookie.split('=')[1] : null;
+                },
+            },
+        }).mount('#app');
+    </script>
+</body>
+</html>
