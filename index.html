@@ -74,6 +74,7 @@
                     this.currentTime = this.workTime * 60;
                     this.isRunning = true;
                     this.timer = setInterval(this.updateTimer, 1000);
+                    this.playSound();
                 },
                 updateTimer() {
                     this.currentTime--;
@@ -99,7 +100,7 @@
                 },
                 playSound() {
                     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    fetch('https://bigsoundbank.com/UPLOAD/mp3/1417.mp3')
+                    fetch('./beep.mp3')
                         .then(response => response.arrayBuffer())
                         .then(buffer => audioContext.decodeAudioData(buffer))
                         .then(decodedData => {
