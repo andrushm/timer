@@ -98,8 +98,18 @@
                     this.isRunning = false;
                 },
                 playSound() {
-                    const audio = new Audio('https://bigsoundbank.com/UPLOAD/mp3/1417.mp3');
-                    audio.play();
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    fetch('https://bigsoundbank.com/UPLOAD/mp3/1417.mp3')
+                        .then(response => response.arrayBuffer())
+                        .then(buffer => audioContext.decodeAudioData(buffer))
+                        .then(decodedData => {
+                            const source = audioContext.createBufferSource();
+                            source.buffer = decodedData;
+                            source.connect(audioContext.destination);
+                            source.start();
+                        });
+                    // const audio = new Audio('https://bigsoundbank.com/UPLOAD/mp3/1417.mp3');
+                    // audio.play();
                 },
                 formatTime(seconds) {
                     const minutes = Math.floor(seconds / 60);
